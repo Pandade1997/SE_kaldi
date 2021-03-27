@@ -1,32 +1,21 @@
 import os
 import argparse
-import sys
-
-import numpy as np
-
 import torch
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
+import torchaudio
 from torch.utils.data import DataLoader
-import torchvision
-from torchvision import transforms
-from torch.optim.lr_scheduler import ExponentialLR
-
-import tensorboardX
-from tensorboardX import SummaryWriter
-
-from scipy.io import wavfile
 import librosa
-
-import soundfile as sf
 from pystoi.stoi import stoi
 from pypesq import pesq
-
 from tqdm import tqdm
 from models.layers.istft import ISTFT
 from load_dataset import AudioDataset
 from models.attention import AttentionModel
+import warnings
+
+warnings.filterwarnings('ignore')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', default=8, type=int, help='train batch size')
@@ -37,11 +26,11 @@ parser.add_argument('--stacked_encoder', default=True, type=bool)
 parser.add_argument('--attn_len', default=5, type=int)
 parser.add_argument('--hidden_size', default=448, type=int)
 parser.add_argument('--ck_dir', default='ckpt_dir', help='ck path')
-parser.add_argument('--ck_name', help='ck file', default='T_dataset.pt')
-parser.add_argument('--test_set', help='test', default='test')
+parser.add_argument('--ck_name', help='ck file', default='se_kaldi.pt')
+parser.add_argument('--test_set', help='train', default='train')
 parser.add_argument('--attn_use', default=True, type=bool)
 parser.add_argument('--out_path',
-                    default='/data01/AuFast/origin_dataset/dataset/LibriSpeech/test_dataset/SE/gen/gen_test/', type=str)
+                    default='/data01/AuFast/PanJiaHui/LibriSpeech/gen_LibriSpeech/train-clean-100/', type=str)
 
 args = parser.parse_args()
 
@@ -130,10 +119,25 @@ def main():
             origin_test_PESQ = 0
             origin_test_STOI = 0
 
-            test_loss = F.mse_loss(logits_mag, clean_mag, True)
+            test_loss1 = F.mse_loss(logits_mag, clean_mag, True)
+
+            # other_loss:
+            wav_test_mix = logits_audio
+            wav_test_clean = test_clean
+            # fbank:
+            fbank_wav_test_mix = torchaudio.compliance.kaldi.fbank(wav_test_mix)
+            fbank_wav_test_clean = torchaudio.compliance.kaldi.fbank(wav_test_clean)
+            test_loss2 = F.mse_loss(fbank_wav_test_mix, fbank_wav_test_clean, True)
+            # mfcc:
+            mfcc_wav_test_mix = torchaudio.compliance.kaldi.mfcc(wav_test_mix)
+            mfcc_wav_test_clean = torchaudio.compliance.kaldi.mfcc(wav_test_clean)
+            test_loss3 = F.mse_loss(mfcc_wav_test_mix, mfcc_wav_test_clean, True)
+
+            test_loss = test_loss1 + test_loss2 + test_loss3
+
 
             for i in range(len(test_mixed)):
-                name = str(test_dataset.file_names[name_sum]).split('/', 8)[8]
+                name = str(test_dataset.file_names[name_sum]).split('/', 7)[7]
                 librosa.output.write_wav(args.out_path + name,
                                          logits_audio[i].cpu().data.numpy()[:seq_len[i].cpu().data.numpy()],
                                          16000)

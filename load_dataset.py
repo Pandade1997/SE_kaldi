@@ -8,8 +8,8 @@ import csv
 import torch
 from torch.utils import data
 
-# dataset_path = "/data01/AuFast/Pan_dataset/SE_asr/test1/se_dataset"
-dataset_path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/wsj0"
+dataset_path = "/data01/AuFast/PanJiaHui/LibriSpeech/SE_kaldi_LibriSpeech"
+# dataset_path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/wsj0"
 
 if not os.path.exists(dataset_path):
     os.makedirs(dataset_path)
