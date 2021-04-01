@@ -1,27 +1,24 @@
-# -*- coding: utf-8 -*-
+# dataset_path = "/data01/AuFast/PanJiaHui/LibriSpeech/SE_kaldi_LibriSpeech"
+# dataset_path = "/data01/AuFast/Pan_dataset/SE_asr/test1/se_dataset"
+# dataset_path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/wsj0"
+# dataset_path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/libri"
 
+
+# -*- coding: utf-8 -*-
 import os
 import numpy as np
 from tqdm import tqdm
 import librosa
-import csv
 import torch
 from torch.utils import data
 
-dataset_path = "/data01/AuFast/PanJiaHui/LibriSpeech/SE_kaldi_LibriSpeech"
-# dataset_path = "/data01/AuFast/Pan_dataset/SE_asr/finaltest/wsj0"
-
-if not os.path.exists(dataset_path):
-    os.makedirs(dataset_path)
-
-train_tar_path = os.path.join(dataset_path, "train")
-valid_tar_path = os.path.join(dataset_path, "valid")
-test1_tar_path = os.path.join(dataset_path, "test")
+# dataset_path = "/data01/AuFast/PanJiaHui/LibriSpeech/SE_kaldi_LibriSpeech"
+dataset_path = "/data01/AuFast/PanJiaHui/wsj_timit"
 
 
 # DATA LOADING - LOAD FILE LISTS
 def load_data_list(folder=dataset_path, setname='train'):
-    assert (setname in ['train', 'valid', 'test', 'test2', 'test3', 'test4'])
+    assert (setname in ['train', 'valid', 'test'])
 
     dataset = {}
 

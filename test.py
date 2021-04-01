@@ -5,6 +5,7 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 import torchaudio
+from torch import multiprocessing
 from torch.utils.data import DataLoader
 import librosa
 from pystoi.stoi import stoi
@@ -15,7 +16,7 @@ from load_dataset import AudioDataset
 from models.attention import AttentionModel
 import warnings
 
-warnings.filterwarnings('ignore')
+# warnings.filterwarnings('ignore')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', default=8, type=int, help='train batch size')
@@ -45,7 +46,7 @@ istft = ISTFT(n_fft, hop_length, window='hanning').cuda()
 def main():
     test_dataset = AudioDataset(data_type=args.test_set)
     test_data_loader = DataLoader(dataset=test_dataset, batch_size=args.batch_size, collate_fn=test_dataset.collate,
-                                  shuffle=False, num_workers=0)
+                                  shuffle=False, num_workers=multiprocessing.cpu_count())
 
     # model select
     print('Model initializing\n')
@@ -134,7 +135,6 @@ def main():
             test_loss3 = F.mse_loss(mfcc_wav_test_mix, mfcc_wav_test_clean, True)
 
             test_loss = test_loss1 + test_loss2 + test_loss3
-
 
             for i in range(len(test_mixed)):
                 name = str(test_dataset.file_names[name_sum]).split('/', 7)[7]
